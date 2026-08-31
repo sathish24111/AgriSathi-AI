@@ -1,0 +1,21 @@
+# Node modules
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Build outputs
+dist/
+build/
+client/dist/
+server/dist/
+
+# Uploads & Temp files
+uploads/scans/*
+!uploads/scans/.gitkeep
+*.log
+.DS_Store
+
+# Environment variables
+.env
+.env.local
+.env.production
