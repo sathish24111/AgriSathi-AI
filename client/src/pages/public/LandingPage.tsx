@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { LogIn, Sparkles, MapPin, Globe, CheckCircle2 } from 'lucide-react';
+import { LogIn, Sparkles, MapPin, Globe, CheckCircle2, Download, Smartphone } from 'lucide-react';
 
 export const LandingPage: React.FC = () => {
   return (
@@ -24,6 +24,15 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-4">
+            <a
+              href="/download/AgriSathi-AI-v1.0.apk"
+              download
+              className="hidden sm:flex items-center space-x-1.5 bg-green-50 text-[#15803d] border border-green-200 text-xs font-bold px-3 py-1.5 rounded-full hover:bg-green-100 transition"
+            >
+              <Smartphone className="h-3.5 w-3.5" />
+              <span>Android APK</span>
+            </a>
+
             <div className="flex items-center space-x-1 text-xs font-semibold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full border">
               <span>EN</span>
               <Globe className="h-3.5 w-3.5" />
@@ -63,15 +72,24 @@ export const LandingPage: React.FC = () => {
               Empowering farmers with advanced AI, real-time weather data, and location intelligence. Instantly identify diseases, pests, and nutrient deficiencies to protect your yield.
             </p>
 
-            {/* Replaced buttons with single "Farmer Login" button */}
-            <div className="pt-2">
+            {/* Action Buttons: Farmer Login + Download Mobile App APK */}
+            <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
               <Link
                 to="/login"
-                className="inline-flex items-center justify-center space-x-2 bg-[#15803d] hover:bg-[#166534] text-white font-extrabold text-base px-8 py-4 rounded-xl shadow-lg transition duration-200 transform hover:-translate-y-0.5"
+                className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-[#15803d] hover:bg-[#166534] text-white font-extrabold text-base px-8 py-4 rounded-xl shadow-lg transition duration-200 transform hover:-translate-y-0.5"
               >
                 <LogIn className="h-5 w-5" />
                 <span>Farmer Login</span>
               </Link>
+
+              <a
+                href="/download/AgriSathi-AI-v1.0.apk"
+                download
+                className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 bg-white border-2 border-[#15803d] text-[#15803d] hover:bg-green-50 font-extrabold text-base px-6 py-4 rounded-xl shadow-md transition duration-200"
+              >
+                <Download className="h-5 w-5" />
+                <span>Download Android App</span>
+              </a>
             </div>
 
             {/* Feature Pills Row */}
@@ -126,6 +144,7 @@ export const LandingPage: React.FC = () => {
             © 2026 AgriSathi AI. Empowering Indian Farmers.
           </p>
           <div className="flex space-x-6 text-xs text-gray-400">
+            <a href="/download/AgriSathi-AI-v1.0.apk" download className="text-green-400 font-bold hover:underline">Download Android APK</a>
             <Link to="/login" className="hover:text-white">Privacy Policy</Link>
             <Link to="/register" className="hover:text-white">Terms of Service</Link>
             <Link to="/admin" className="hover:text-white">Contact Support</Link>
