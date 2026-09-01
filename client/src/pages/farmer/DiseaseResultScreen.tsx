@@ -12,8 +12,36 @@ export const DiseaseResultScreen: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      apiClient.getScanById(id).then(setResult).catch(console.error);
+      apiClient.getScanById(id).then(res => {
+        if (res) {
+          setResult(res);
+
+          // Automatically trigger Voice AI Tool to speak diagnosis aloud!
+          if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const textToSpeak = `${res.cropName} diagnosis: ${res.diseaseName}. ${res.explanation}. Recommended Action: ${res.organicControl ? res.organicControl.join('. ') : ''}`;
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.rate = 0.95;
+            utterance.pitch = 1.0;
+            utterance.onstart = () => setSpeaking(true);
+            utterance.onend = () => setSpeaking(false);
+            utterance.onerror = () => setSpeaking(false);
+
+            // Short 500ms delay to allow page transition
+            setTimeout(() => {
+              window.speechSynthesis.speak(utterance);
+              setSpeaking(true);
+            }, 500);
+          }
+        }
+      }).catch(console.error);
     }
+
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
   }, [id]);
 
   const toggleSpeech = () => {
@@ -23,9 +51,12 @@ export const DiseaseResultScreen: React.FC = () => {
         window.speechSynthesis.cancel();
         setSpeaking(false);
       } else {
-        const text = `${result.cropName} diagnosis: ${result.diseaseName}. ${result.explanation}`;
-        const utterance = new SpeechSynthesisUtterance(text);
+        const textToSpeak = `${result.cropName} diagnosis: ${result.diseaseName}. ${result.explanation}. Recommended Action: ${result.organicControl ? result.organicControl.join('. ') : ''}`;
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.rate = 0.95;
+        utterance.onstart = () => setSpeaking(true);
         utterance.onend = () => setSpeaking(false);
+        utterance.onerror = () => setSpeaking(false);
         window.speechSynthesis.speak(utterance);
         setSpeaking(true);
       }
@@ -33,13 +64,13 @@ export const DiseaseResultScreen: React.FC = () => {
   };
 
   if (!result) {
-    return <div className="p-12 text-center text-gray-500">Loading Crop Health Analysis...</div>;
+    return <div className="p-12 text-center text-gray-500 font-bold">Loading Crop Health Analysis...</div>;
   }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       
-      {/* Top Action Header (Matching Mockup Image 1 & 4) */}
+      {/* Top Action Header */}
       <div className="flex justify-between items-center">
         <Link to="/scanner" className="inline-flex items-center space-x-2 text-xs font-bold text-gray-600 hover:text-gray-900">
           <ArrowLeft className="h-4 w-4" />
@@ -47,10 +78,16 @@ export const DiseaseResultScreen: React.FC = () => {
         </Link>
 
         <div className="flex items-center space-x-3">
-          <button onClick={toggleSpeech} className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center space-x-1">
-            {speaking ? <VolumeX className="h-4 w-4 text-amber-600" /> : <Volume2 className="h-4 w-4 text-[#15803d]" />}
-            <span>{speaking ? 'Stop Voice' : 'Voice Advisory'}</span>
+          <button
+            onClick={toggleSpeech}
+            className={`text-xs font-bold px-4 py-2 rounded-xl flex items-center space-x-2 shadow-sm transition ${
+              speaking ? 'bg-amber-500 text-white animate-pulse' : 'bg-[#15803d] text-white hover:bg-[#166534]'
+            }`}
+          >
+            {speaking ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+            <span>{speaking ? '🔊 Speaking Advisory...' : 'Voice Advisory'}</span>
           </button>
+
           <button className="bg-white border border-gray-300 text-gray-700 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center space-x-1">
             <Share2 className="h-4 w-4" />
             <span>Share</span>
@@ -64,7 +101,7 @@ export const DiseaseResultScreen: React.FC = () => {
 
       <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight text-left">Crop Health Analysis</h1>
 
-      {/* Top Diagnosis Summary Bar Card (Matching Mockup Image 1 & 4) */}
+      {/* Top Diagnosis Summary Bar Card */}
       <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center space-x-4">
           <div className="p-3 bg-amber-100 text-amber-800 rounded-xl">
@@ -89,7 +126,9 @@ export const DiseaseResultScreen: React.FC = () => {
 
           <div className="text-center">
             <span className="text-xs text-gray-400 font-semibold block">Status</span>
-            <span className="text-sm font-extrabold text-red-600">At Risk</span>
+            <span className={`text-sm font-extrabold ${result.confidence < 60 ? 'text-gray-600' : 'text-red-600'}`}>
+              {result.confidence < 60 ? 'Low Certainty' : 'At Risk'}
+            </span>
           </div>
         </div>
       </div>
@@ -100,12 +139,11 @@ export const DiseaseResultScreen: React.FC = () => {
         {/* Left Column: Image Card, What We Detected, Why This May Be Happening */}
         <div className="space-y-6">
           
-          {/* Scanned Leaf Image with Bounding Box Overlay Tag */}
+          {/* Scanned Leaf Image */}
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-3">
             <div className="relative rounded-2xl overflow-hidden h-64 bg-gray-900 border">
               <img src={result.imageUrl} alt={result.cropName} className="w-full h-full object-cover" />
               
-              {/* Bounding Box 94% Match Tag Overlay */}
               <div className="absolute top-4 left-4 border-2 border-red-500 bg-red-500/20 rounded-lg p-2 flex items-center space-x-1">
                 <span className="bg-red-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded">
                   {result.confidence}% Match
@@ -132,7 +170,7 @@ export const DiseaseResultScreen: React.FC = () => {
 
             <div className="space-y-2 pt-2">
               <span className="text-xs font-bold text-gray-800 block">Key Symptoms Identified:</span>
-              {result.symptoms.map((sym, idx) => (
+              {result.symptoms && result.symptoms.map((sym, idx) => (
                 <div key={idx} className="flex items-start space-x-2 text-xs text-gray-700">
                   <span className="text-red-500 font-bold">•</span>
                   <span>{sym}</span>
@@ -176,7 +214,6 @@ export const DiseaseResultScreen: React.FC = () => {
         {/* Right Column: Dark Green Action Plan Card & Ask AI Assistant CTA */}
         <div className="space-y-6 flex flex-col justify-between">
           
-          {/* Action Plan Card (Matching Dark Green Header in Mockup Image 1 & 4) */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden space-y-0">
             
             {/* Header */}
@@ -269,7 +306,6 @@ export const DiseaseResultScreen: React.FC = () => {
             </div>
           </div>
 
-          {/* Bottom Fixed CTA Button (Matching Mockup Image 1 & 4) */}
           <button
             onClick={() => navigate('/assistant')}
             className="w-full bg-[#14532d] hover:bg-[#166534] text-white font-bold py-4 rounded-2xl shadow-lg transition flex items-center justify-center space-x-2 text-sm"
