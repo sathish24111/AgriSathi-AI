@@ -1,0 +1,232 @@
+// Prisma Schema for AgriSathi AI Shared MySQL Database
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  FARMER
+  ADMIN
+}
+
+enum RiskLevel {
+  LOW
+  MODERATE
+  HIGH
+  CRITICAL
+}
+
+enum HealthStatus {
+  IMPROVING
+  STABLE
+  WORSENING
+  UNKNOWN
+}
+
+enum ValidationStatus {
+  CONFIRMED
+  CORRECTED
+  HEALTHY
+  INCONCLUSIVE
+}
+
+model User {
+  id              String   @id @default(uuid())
+  name            String
+  mobile          String   @unique
+  email           String   @unique
+  password_hash   String
+  state           String   @default("Maharashtra")
+  district        String   @default("Nashik")
+  language        String   @default("en")
+  primary_crop    String   @default("Tomato")
+  role            Role     @default(FARMER)
+  latitude        Float?
+  longitude       Float?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  crops           Crop[]
+  scans           Scan[]
+  alerts          Alert[]
+  recommendations CropRecommendation[]
+  monitoring      MonitoringRecord[]
+
+  @@index([mobile])
+  @@index([email])
+  @@map("users")
+}
+
+model Crop {
+  id            String   @id @default(uuid())
+  user_id       String
+  crop_name     String
+  variety       String   @default("Hybrid Standard")
+  planting_date String
+  growth_stage  String   @default("Vegetative Growth")
+  farm_size     Float    @default(2.5)
+  soil_type     String   @default("Black Sandy Loam")
+  irrigation    String   @default("Drip Irrigation")
+  health_status String   @default("HEALTHY")
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  scans         Scan[]
+  monitoring    MonitoringRecord[]
+  alerts        Alert[]
+
+  @@index([user_id])
+  @@map("crops")
+}
+
+model Disease {
+  id               String   @id @default(uuid())
+  name             String
+  crop             String
+  description      String   @db.Text
+  symptoms         String   @db.Text
+  prevention       String   @db.Text
+  treatment        String   @db.Text
+  organic_remedies String   @db.Text
+  risk_level       String   @default("MODERATE")
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  scans            Scan[]
+
+  @@map("diseases")
+}
+
+model Scan {
+  id              String   @id @default(uuid())
+  user_id         String
+  crop_id         String?
+  image_url       String
+  crop_name       String
+  disease_id      String?
+  prediction      String
+  confidence      Float
+  risk_level      String   @default("MODERATE")
+  severity        String   @default("Moderate")
+  symptoms        String   @db.Text
+  weather_context String   @db.Text
+  probable_cause  String   @db.Text
+  recommendations String   @db.Text
+  ai_status       String   @default("COMPLETED")
+  created_at      DateTime @default(now())
+
+  user            User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  crop            Crop?          @relation(fields: [crop_id], references: [id], onDelete: SetNull)
+  disease         Disease?       @relation(fields: [disease_id], references: [id], onDelete: SetNull)
+  expert_reviews  ExpertReview[]
+
+  @@index([user_id])
+  @@index([crop_id])
+  @@index([disease_id])
+  @@index([created_at])
+  @@map("scans")
+}
+
+model Alert {
+  id          String   @id @default(uuid())
+  user_id     String?
+  crop_id     String?
+  title       String
+  message     String   @db.Text
+  alert_type  String   @default("DISEASE")
+  risk_level  String   @default("MODERATE")
+  region      String   @default("Maharashtra & Pan-India")
+  is_read     Boolean  @default(false)
+  created_at  DateTime @default(now())
+
+  user        User?    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  crop        Crop?    @relation(fields: [crop_id], references: [id], onDelete: SetNull)
+
+  @@index([user_id])
+  @@index([created_at])
+  @@map("alerts")
+}
+
+model MarketData {
+  id          String   @id @default(uuid())
+  crop_name   String
+  market_name String
+  district    String
+  state       String
+  price       Float
+  min_price   Float
+  max_price   Float
+  unit        String   @default("Quintal")
+  price_trend String   @default("STABLE")
+  source      String   @default("SIMULATED DEMO MARKET DATA")
+  is_mock     Boolean  @default(true)
+  recorded_at DateTime @default(now())
+
+  @@index([crop_name])
+  @@index([district])
+  @@map("market_data")
+}
+
+model CropRecommendation {
+  id                    String   @id @default(uuid())
+  user_id               String
+  crop_name             String
+  location              String
+  season                String   @default("Kharif")
+  weather_score         Float    @default(85.0)
+  market_score          Float    @default(88.0)
+  disease_risk_score    Float    @default(15.0)
+  water_score           Float    @default(90.0)
+  overall_score         Float    @default(87.5)
+  estimated_cost        Float    @default(25000)
+  estimated_revenue     Float    @default(65000)
+  estimated_profit      Float    @default(40000)
+  recommendation_reason String   @db.Text
+  created_at            DateTime @default(now())
+
+  user                  User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("crop_recommendations")
+}
+
+model MonitoringRecord {
+  id                String   @id @default(uuid())
+  user_id           String
+  crop_id           String
+  initial_scan_id   String?
+  follow_up_scan_id String?
+  health_status     String   @default("STABLE")
+  progress          Float    @default(50.0)
+  notes             String   @db.Text
+  next_check_date   String
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  user              User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  crop              Crop     @relation(fields: [crop_id], references: [id], onDelete: Cascade)
+
+  @@map("monitoring_records")
+}
+
+model ExpertReview {
+  id                 String   @id @default(uuid())
+  scan_id            String
+  expert_id          String?
+  ai_prediction      String
+  ai_confidence      Float
+  expert_prediction  String?
+  validation_status  String   @default("INCONCLUSIVE")
+  expert_notes       String?  @db.Text
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  scan               Scan     @relation(fields: [scan_id], references: [id], onDelete: Cascade)
+
+  @@index([scan_id])
+  @@map("expert_reviews")
+}

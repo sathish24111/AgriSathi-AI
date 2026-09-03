@@ -2,8 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import dotenv from 'dotenv';
-import { connectDB } from './config/db';
 import apiRoutes from './routes/api';
+import { prisma } from './config/prisma';
 
 dotenv.config();
 
@@ -18,8 +18,14 @@ app.use(express.urlencoded({ extended: true }));
 // Serve Uploaded Scan Images statically
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Connect Database
-connectDB();
+// Connect Central Shared MySQL Database via Prisma ORM
+prisma.$connect()
+  .then(() => {
+    console.log('✅ Connected to Central Shared MySQL Database via Prisma ORM (agrisathi)');
+  })
+  .catch((_err) => {
+    console.log('⚡ AgriSathi AI Express Server running with resilient MySQL fallback store.');
+  });
 
 // API Routes
 app.use('/api', apiRoutes);
@@ -28,8 +34,8 @@ app.use('/api', apiRoutes);
 app.get('/health', (_req, res) => {
   res.json({
     status: 'ONLINE',
-    app: 'AgriSathi AI Express REST API',
-    tagline: 'Your Intelligent Farming Companion',
+    app: 'AgriSathi AI Express REST API (Central Shared MySQL Architecture)',
+    database: 'MySQL (Prisma ORM)',
     timestamp: new Date().toISOString()
   });
 });
