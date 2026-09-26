@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Scan, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Upload, Scan, CheckCircle2 } from 'lucide-react';
 import { DiseaseResult } from '../../types';
 
 export const CropScannerWidget: React.FC = () => {

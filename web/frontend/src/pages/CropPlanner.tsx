@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { CalendarDays, Calculator, Sparkles } from 'lucide-react';
 import { formatCurrency } from '../utils/formatters';
 
 export const CropPlanner: React.FC = () => {
