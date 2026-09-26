@@ -19,21 +19,19 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-
     - name: Build Android Debug APK
-      run: ./gradlew assembleDebug
-
-    - name: Copy APK to web public directory
       run: |
-        mkdir -p web/frontend/public/download
-        cp app/build/outputs/apk/debug/app-debug.apk web/frontend/public/download/AgriSathi-AI-v1.0.apk
+        if [ -d "../agrisathi-ai" ]; then
+          cd ../agrisathi-ai
+          chmod +x gradlew
+          ./gradlew assembleDebug
+          cp app/build/outputs/apk/debug/app-debug.apk ../agrisathi-web/client/public/download/AgriSathi-AI-v1.0.apk
+        fi
 
-    - name: Auto-Commit & Push APK
+    - name: Auto-Commit & Deploy to Web Public Directory
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add web/frontend/public/download/AgriSathi-AI-v1.0.apk || true
-        git commit -m "ci: update latest AgriSathi AI Android APK [skip ci]" || true
+        git add client/public/download/AgriSathi-AI-v1.0.apk || true
+        git commit -m "Automated build: Update latest AgriSathi AI Android APK" || true
         git push || true
