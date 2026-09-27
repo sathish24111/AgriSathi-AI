@@ -1,6 +1,6 @@
 import React from 'react';
 import { CropScannerWidget } from '../components/dashboard/CropScannerWidget';
-import { History } from 'lucide-react';
+import { History, ShieldCheck, Sparkles } from 'lucide-react';
 
 export const CropScanner: React.FC = () => {
   return (

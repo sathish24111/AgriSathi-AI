@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, CloudRain, Bug, ShieldAlert } from 'lucide-react';
 
 export const Alerts: React.FC = () => {
   const alerts = [

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, MapPin, Globe, Award } from 'lucide-react';
+import { User, Phone, MapPin, Globe, Award, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 

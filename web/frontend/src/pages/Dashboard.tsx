@@ -2,7 +2,7 @@ import React from 'react';
 import { WeatherCard } from '../components/dashboard/WeatherCard';
 import { MarketTrendsCard } from '../components/dashboard/MarketTrendsCard';
 import { CropScannerWidget } from '../components/dashboard/CropScannerWidget';
-import { Sparkles, Calendar } from 'lucide-react';
+import { Sparkles, Calendar, BellRing } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const Dashboard: React.FC = () => {
